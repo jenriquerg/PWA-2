@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Task Manager — Home (SSR)</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b74de">
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;padding:16px;background:#f6fbff}
+    header{display:flex;align-items:center;gap:12px;justify-content:space-between}
+    .card{background:white;padding:12px;border-radius:10px;box-shadow:0 4px 14px rgba(12,23,56,0.06);margin:12px 0}
+    nav a{margin-right:12px}
+    .task{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px;border-bottom:1px solid #eee}
+    .task .left{display:flex;align-items:center;gap:12px}
+    .small{font-size:0.9rem;color:#666}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Task Manager — Home (SSR)</h1>
+      <nav><a href="/splash">Splash</a><a href="/app">App (CSR)</a></nav>
+    </div>
+    <div class="small">Tareas en servidor: <strong><%= tasks.length %></strong></div>
+  </header>
+
+  <section class="card">
+    <h2>Tareas servidas por el servidor</h2>
+    <% if (tasks && tasks.length) { %>
+      <% tasks.forEach(function(task){ %>
+        <article class="task">
+          <div class="left">
+            <div><input type="checkbox" <%= task.completed ? 'checked' : '' %> disabled></div>
+            <div>
+              <div><strong><%= task.title %></strong></div>
+              <div class="small"><%= task.description %></div>
+            </div>
+          </div>
+          <div class="small"><%= new Date(task.createdAt).toLocaleString() %></div>
+        </article>
+      <% }) %>
+    <% } else { %>
+      <p>No hay tareas en el servidor.</p>
+    <% } %>
+  </section>
+</body>
+</html>
