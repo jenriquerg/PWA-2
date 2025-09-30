@@ -1,10 +1,14 @@
 {
   "name": "PWA Case Study",
   "short_name": "PWA-CS",
+  "description": "App de ejemplo PWA para gestión de tareas offline-first con notificaciones y push.",
   "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0b74de",
   "theme_color": "#0b74de",
+  "lang": "es",
   "icons": [
     {
       "src": "/icons/icon-192.png",

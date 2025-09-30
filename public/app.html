@@ -7,31 +7,92 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0b74de">
   <style>
-    body{font-family:system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;padding:12px;background:#f6fbff}
-    header{display:flex;align-items:center;justify-content:space-between}
-    .btn{padding:8px 12px;border-radius:8px;border:none;background:#0b74de;color:white;cursor:pointer}
-    .card{background:white;padding:12px;border-radius:10px;box-shadow:0 4px 14px rgba(12,23,56,0.06);margin:12px 0}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .task{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid #eee}
-    .input{padding:8px;border-radius:8px;border:1px solid #ddd;width:100%;box-sizing:border-box;margin-bottom:8px}
-    #cameraPreview{max-width:100%;border-radius:8px}
-    .muted{color:#666;font-size:0.9rem}
+    body {
+      font-family: system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;
+      margin: 0;
+      padding: 12px;
+      background: #f6fbff;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #0b74de;
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .card {
+      background: white;
+      padding: 12px;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(12,23,56,0.06);
+      margin: 12px 0;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      align-items: center;
+    }
+    .task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .input {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 8px;
+    }
+    #cameraPreview {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    .muted {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .feedback {
+      font-size: 0.9rem;
+      color: #0b74de;
+      margin-top: 4px;
+    }
+    @media(max-width:600px){
+      header {flex-direction: column; align-items: flex-start;}
+      .controls {flex-direction: column; align-items: flex-start;}
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Task Manager — App (CSR)</h1>
-    <div>
-      <button class="btn" id="installBtn" style="display:none">Instalar</button>
-      <a href="/" style="margin-left:10px">Volver (SSR)</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn" id="installBtn" aria-label="Instalar PWA">Instalar</button>
+      <a href="/" class="btn" style="background:#0b74de;text-decoration:none;">Volver (SSR)</a>
     </div>
   </header>
 
   <section class="card">
     <h2>Crear tarea</h2>
-    <input id="titleInput" class="input" placeholder="Título de la tarea">
-    <textarea id="descInput" class="input" placeholder="Descripción (opcional)"></textarea>
-    <div style="display:flex;gap:8px">
+    <input id="titleInput" class="input" placeholder="Título de la tarea" aria-label="Título de la tarea">
+    <textarea id="descInput" class="input" placeholder="Descripción (opcional)" aria-label="Descripción de la tarea"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button id="getLocation" class="btn">Agregar ubicación</button>
       <button id="openCamera" class="btn">Tomar foto</button>
       <button id="createTask" class="btn">Crear tarea</button>
@@ -40,14 +101,14 @@
       <video id="cameraPreview" autoplay playsinline style="display:none"></video>
       <canvas id="photoCanvas" style="display:none"></canvas>
     </div>
-    <div id="createResult" class="muted"></div>
+    <div id="createResult" class="muted feedback"></div>
   </section>
 
   <section class="card">
     <h2>Lista de tareas</h2>
     <div class="controls">
       <button id="syncBtn" class="btn">Forzar sincronización</button>
-      <div id="status" class="muted" style="margin-left:8px"></div>
+      <div id="status" class="muted feedback"></div>
     </div>
     <div id="tasksList"></div>
   </section>
@@ -56,10 +117,12 @@
     <h2>Notificaciones & Push</h2>
     <div class="controls">
       <button id="notifBtn" class="btn">Pedir permiso y mostrar notificación</button>
+      <div id="notifFeedback" class="feedback"></div>
       <button id="subscribePush" class="btn">Suscribirse a Push (guardar en server)</button>
+      <div id="pushFeedback" class="feedback"></div>
       <button id="triggerServerPush" class="btn">Pedir al server que envíe push (demo)</button>
+      <div id="pushResult" class="feedback"></div>
     </div>
-    <div id="pushResult"></div>
   </section>
 
   <script src="/public/app.js"></script>

@@ -1,6 +1,6 @@
 # PWA Task Manager — Plantilla práctica (ES)
 
-Esta plantilla contiene un ejemplo funcional de una **Progressive Web App (PWA)** que implementa un **Task Manager** con:
+Esta plantilla contiene un ejemplo funcional de una Progressive Web App que implementa un Task Manager con:
 - Pantalla Splash y Home (SSR).
 - Vista cliente (CSR) con CRUD de tareas, offline y sincronización con servidor.
 - Datos locales: IndexedDB.
@@ -46,12 +46,3 @@ Esta plantilla contiene un ejemplo funcional de una **Progressive Web App (PWA)*
 - Las tareas creadas offline se guardan localmente con `clientId` que comienza con `l:`.
 - Cuando el cliente vuelve online, se envían al servidor (`POST /api/tasks`) y se reemplazan por registros con `clientId` `s:<id>` (server id).
 - Las actualizaciones y eliminaciones de tareas server-backed se sincronizan con `PUT /api/tasks/:id` y `DELETE /api/tasks/:id`.
-
----
-Si quieres, ahora:
-1) Te guío a probar la creación y sincronización en tu máquina.  
-2) Añadimos edición de tareas (UI para editar).  
-3) Añadimos background sync con Service Worker / Workbox.  
-4) Implemento recordatorios push programados (requiere VAPID y un job scheduler).
-
-Dime qué paso quieres ahora y seguimos paso a paso.

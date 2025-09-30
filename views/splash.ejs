@@ -8,9 +8,9 @@
   <meta name="theme-color" content="#0b74de">
   <style>
     html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
-    .splash{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:linear-gradient(180deg,#0b74de,#63b3ff);color:white}
-    .logo{width:120px;height:120px;border-radius:24px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-weight:700}
-    button{margin-top:20px;padding:10px 16px;border:none;border-radius:8px;background:white;color:#0b74de;font-weight:600}
+    .splash{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:linear-gradient(180deg,#0b74de,#63b3ff);color:white;text-align:center}
+    .logo{width:120px;height:120px;border-radius:24px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:2rem}
+    .btn{margin:10px;padding:10px 16px;border:none;border-radius:8px;background:white;color:#0b74de;font-weight:600;text-decoration:none;display:inline-block}
   </style>
 </head>
 <body>
@@ -19,8 +19,8 @@
     <h1>Bienvenido</h1>
     <p>Plantilla PWA — toque "Entrar" para continuar</p>
     <div>
-      <button onclick="location.href='/'">Entrar (SSR)</button>
-      <button onclick="location.href='/app'">Entrar (CSR)</button>
+      <a href="/" class="btn">Entrar (SSR)</a>
+      <a href="/app" class="btn">Entrar (CSR)</a>
     </div>
   </div>
 </body>

@@ -1,71 +1,90 @@
-/* Service Worker simple:
- - cache core assets on install
- - serve from cache when offline
- - cache API responses for /api/items
- - listen push event to show notification (if push is used)
-*/
+/* sw.js — Service Worker completo PWA Task Manager */
 
-const CACHE_NAME = 'pwa-case-study-v1';
+const CACHE_NAME = 'pwa-task-manager-v1';
 const CORE_ASSETS = [
   '/',
   '/app',
   '/public/app.html',
-  '/public/app.js',
+  '/spp.js', // tu script principal
   '/manifest.json',
   '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/icons/icon-512.png',
+  '/offline.html'
 ];
 
+// --- Install: cache core assets ---
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(CORE_ASSETS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
+// --- Activate: limpiar caches viejos ---
 self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
+  const currentCaches = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => {
+        if (!currentCaches.includes(key)) return caches.delete(key);
+      }))
+    ).then(() => self.clients.claim())
+  );
 });
 
-// Fetch strategy: try network, fallback to cache. For API /api/items prefer network but cache response.
+// --- Fetch: network-first para API, cache-first para otros assets ---
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  // Cache API responses for /api/items with network-first
-  if (url.pathname.startsWith('/api/')) {
+
+  // Network-first para API /api/tasks
+  if (url.pathname.startsWith('/api/tasks')) {
     event.respondWith(
-      fetch(event.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return res;
-      }).catch(() => caches.match(event.request))
+      fetch(event.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // For navigation and other assets: cache-first fallback to network
+  // Cache-first para navegación y otros assets
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(networkRes => {
-        // Optionally cache new assets
-        return networkRes;
-      }).catch(() => {
-        // optionally return offline page
-        return caches.match('/app') || caches.match('/');
-      });
-    })
+    caches.match(event.request)
+      .then(cached => cached || fetch(event.request)
+        .then(networkRes => networkRes)
+        .catch(() => caches.match('/offline.html'))
+      )
   );
 });
 
+// --- Push notifications ---
 self.addEventListener('push', event => {
-  let data = { title: 'Notificación', body: 'Tienes una notificación.' };
-  try {
-    data = event.data.json();
-  } catch (e) {}
+  let data = { title: 'Notificación', body: 'Tienes una notificación.', url: '/' };
+  try { data = event.data.json(); } catch(e) {}
   const options = {
     body: data.body,
     tag: 'pwa-push',
-    renotify: true
+    renotify: true,
+    icon: '/icons/icon-192.png',
+    data: { url: data.url }
   };
   event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+// --- Click en notificación ---
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(windowClients => {
+      for (const client of windowClients) {
+        if (client.url === url && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
 });
