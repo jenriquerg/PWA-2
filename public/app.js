@@ -123,74 +123,86 @@ if ('serviceWorker' in navigator) {
 async function renderTasks() {
   const tasks = await getAllTasksLocal();
   tasksList.innerHTML = '';
+
   tasks.forEach(t => {
     const div = document.createElement('div');
     div.className = 'task';
+
+    // Left: checkbox + info
     const left = document.createElement('div');
-    left.style.display = 'flex';
-    left.style.alignItems = 'center';
-    left.style.gap = '12px';
+    left.className = 'task-left';
 
     const cb = document.createElement('input');
     cb.type = 'checkbox';
+    cb.className = 'task-checkbox';
     cb.checked = !!t.completed;
     cb.addEventListener('change', async () => {
       t.completed = cb.checked;
       t.dirty = true;
-      await putTaskLocalNoDirty(t);
       const db = await openDB();
       const tx = db.transaction(DB_STORE, 'readwrite');
-      const store = tx.objectStore(DB_STORE);
-      t.dirty = true;
-      store.put(t);
-      tx.complete && tx.complete.then(()=>{});
-      status('Tarea marcada. Sincronizando...');
-      try { await syncPendingTasks(); status('Sincronizado.'); } catch(e){ status('Sincronización pendiente.'); }
+      tx.objectStore(DB_STORE).put(t);
+      status('✓ Tarea actualizada');
+      try { await syncPendingTasks(); status('✓ Sincronizado'); } catch(e){ status('⏳ Pendiente sincronización'); }
       renderTasks();
-      if (navigator.vibrate) navigator.vibrate(120);
+      if (navigator.vibrate) navigator.vibrate(50);
     });
 
     const info = document.createElement('div');
+    info.className = 'task-info';
     const title = document.createElement('div');
-    title.innerHTML = '<strong>' + escapeHtml(t.title) + '</strong>';
+    title.className = 'task-title';
+    title.textContent = t.title;
+    if (t.completed) title.style.textDecoration = 'line-through';
     const desc = document.createElement('div');
-    desc.className = 'muted';
+    desc.className = 'task-desc';
     desc.textContent = t.description || '';
-    info.appendChild(title); info.appendChild(desc);
+    info.appendChild(title);
+    if (t.description) info.appendChild(desc);
 
-    left.appendChild(cb); left.appendChild(info);
+    left.appendChild(cb);
+    left.appendChild(info);
 
+    // Right: badge + photo + delete
     const right = document.createElement('div');
-    right.style.display = 'flex';
-    right.style.alignItems = 'center';
-    right.style.gap = '8px';
+    right.className = 'task-right';
 
-    const syncBadge = document.createElement('span');
-    syncBadge.className = 'muted';
-    syncBadge.textContent = t.clientId.startsWith('l:') ? 'offline' : (t.dirty ? 'pendiente' : 'ok');
-    right.appendChild(syncBadge);
+    const badge = document.createElement('span');
+    badge.className = 'task-badge';
+    if (t.clientId.startsWith('l:')) {
+      badge.className += ' badge-offline';
+      badge.textContent = 'offline';
+    } else if (t.dirty) {
+      badge.className += ' badge-pending';
+      badge.textContent = 'pendiente';
+    } else {
+      badge.className += ' badge-ok';
+      badge.textContent = 'ok';
+    }
+    right.appendChild(badge);
 
     if (t.photo) {
       const img = document.createElement('img');
       img.src = t.photo;
-      img.style.maxWidth = '64px';
-      img.style.borderRadius = '6px';
+      img.className = 'task-photo';
       right.appendChild(img);
     }
 
     const delBtn = document.createElement('button');
-    delBtn.className = 'btn';
-    delBtn.textContent = 'Borrar';
+    delBtn.className = 'btn btn-delete';
+    delBtn.textContent = '🗑️';
+    delBtn.title = 'Borrar tarea';
     delBtn.addEventListener('click', async () => {
-      if (!confirm('¿Borrar tarea?')) return;
+      if (!confirm('¿Borrar esta tarea?')) return;
       await deleteTaskLocal(t.clientId);
-      status('Tarea borrada localmente. Sincronizando...');
-      try { await syncPendingTasks(); status('Sincronizado.'); } catch(e){ status('Sincronización pendiente.'); }
+      status('🗑️ Tarea eliminada');
+      try { await syncPendingTasks(); status('✓ Sincronizado'); } catch(e){ status('⏳ Pendiente sincronización'); }
       renderTasks();
     });
 
     right.appendChild(delBtn);
-    div.appendChild(left); div.appendChild(right);
+    div.appendChild(left);
+    div.appendChild(right);
     tasksList.appendChild(div);
   });
 }
@@ -302,8 +314,80 @@ async function syncPendingTasks() {
   renderTasks();
 }
 
+// --- Auto-setup de Push Notifications ---
+async function setupPushNotifications() {
+  try {
+    // Verificar soporte
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('Push notifications no soportadas en este navegador');
+      return;
+    }
+
+    // Esperar a que el SW esté listo
+    const reg = await navigator.serviceWorker.ready;
+
+    // Verificar si ya está suscrito
+    let subscription = await reg.pushManager.getSubscription();
+    if (subscription) {
+      console.log('Ya estás suscrito a push notifications');
+      return;
+    }
+
+    // Pedir permiso si no lo tenemos
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.log('Permiso de notificaciones denegado');
+        return;
+      }
+    }
+
+    // Si el permiso fue denegado previamente, no hacer nada
+    if (Notification.permission !== 'granted') {
+      console.log('Notificaciones no permitidas');
+      return;
+    }
+
+    // Obtener la clave pública VAPID
+    const res = await fetch('/api/vapid-public');
+    const { publicKey } = await res.json();
+
+    // Suscribirse a push
+    subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey)
+    });
+
+    // Guardar suscripción en el servidor
+    await fetch('/api/save-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(subscription)
+    });
+
+    console.log('Push notifications configuradas automáticamente ✓');
+  } catch (err) {
+    console.warn('Error al configurar push notifications:', err.message);
+  }
+}
+
 // --- Load / online/offline ---
-window.addEventListener('load', async () => { renderTasks(); if(navigator.onLine){status('Online: sincronizando...'); try{await syncPendingTasks();status('Sincronizado.');}catch(e){status('Sync incompleta.');} renderTasks();}else status('Offline: trabajando local.'); });
+window.addEventListener('load', async () => {
+  renderTasks();
+  if(navigator.onLine){
+    status('Online: sincronizando...');
+    try{
+      await syncPendingTasks();
+      status('Sincronizado.');
+    }catch(e){
+      status('Sync incompleta.');
+    }
+    renderTasks();
+  }else status('Offline: trabajando local.');
+
+  // Configurar push automáticamente
+  await setupPushNotifications();
+});
 window.addEventListener('online', async()=>{status('Online: sincronizando...');try{await syncPendingTasks();status('Sincronizado.');}catch(e){status('Sync incompleta.');} renderTasks();});
 window.addEventListener('offline',()=>{status('Offline: cambios guardados localmente.');});
 syncBtn.addEventListener('click',async()=>{if(!navigator.onLine)return alert('Offline.');status('Sincronizando manualmente...');try{await syncPendingTasks();status('Sincronizado.');}catch(e){status('Sync falló.');}});

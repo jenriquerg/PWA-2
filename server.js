@@ -53,12 +53,13 @@ webpush.setVapidDetails('mailto:example@example.com', VAPID_PUBLIC, VAPID_PRIVAT
 console.log('Web-push VAPID configurado.');
 
 // --- Rutas SSR ---
-app.get('/splash', (req, res) => res.render('splash'));
-app.get('/', (req, res) => res.render('home', { tasks: TASKS }));
-app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'public', 'app.html')));
+app.get('/', (_req, res) => res.render('splash'));
+app.get('/splash', (_req, res) => res.render('splash'));
+app.get('/home', (_req, res) => res.render('home', { tasks: TASKS }));
+app.get('/app', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'app.html')));
 
 // --- API de tareas ---
-app.get('/api/tasks', (req, res) => setTimeout(() => res.json({ ok:true, tasks:TASKS, ts: Date.now() }), 300));
+app.get('/api/tasks', (_req, res) => setTimeout(() => res.json({ ok:true, tasks:TASKS, ts: Date.now() }), 300));
 
 app.post('/api/tasks', (req, res) => {
   const { title, description, completed, location, photo } = req.body;
@@ -100,6 +101,10 @@ app.post('/api/sync', (req, res) => {
 });
 
 // --- Push ---
+app.get('/api/vapid-public', (_req, res) => {
+  res.json({ publicKey: VAPID_PUBLIC });
+});
+
 app.post('/api/save-subscription', (req, res) => {
   const sub = req.body;
   if (sub && sub.endpoint) { subscriptions.push(sub); res.json({ ok:true }); }

@@ -7,123 +7,158 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0b74de">
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       margin: 0;
-      padding: 12px;
-      background: #f6fbff;
+      padding: 0;
+      background: linear-gradient(180deg, #f0f4f8 0%, #e5eef5 100%);
+      min-height: 100vh;
     }
     header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
+      background: linear-gradient(135deg, #0b74de 0%, #1e88e5 100%);
+      color: white;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(11, 116, 222, 0.2);
     }
+    header h1 {
+      margin: 0 0 8px 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 16px; }
     .btn {
-      padding: 8px 12px;
-      border-radius: 8px;
+      padding: 10px 18px;
+      border-radius: 12px;
       border: none;
       background: #0b74de;
       color: white;
       cursor: pointer;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(11, 116, 222, 0.2);
     }
+    .btn:hover { background: #0960c4; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(11, 116, 222, 0.3); }
+    .btn:active { transform: translateY(0); }
+    .btn-secondary { background: white; color: #0b74de; border: 2px solid #0b74de; }
+    .btn-secondary:hover { background: #f0f4f8; }
     .card {
       background: white;
-      padding: 12px;
-      border-radius: 10px;
-      box-shadow: 0 4px 14px rgba(12,23,56,0.06);
-      margin: 12px 0;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      margin: 16px 0;
     }
-    .controls {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-      align-items: center;
-    }
+    .card h2 { margin: 0 0 16px 0; font-size: 1.25rem; color: #1a1a1a; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
     .task {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-      flex-wrap: wrap;
-      gap: 8px;
+      padding: 16px;
+      background: #fafbfc;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+      border: 1px solid #e8ecef;
     }
-    .input {
-      padding: 8px;
+    .task:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+    .task-left { display: flex; align-items: center; gap: 14px; flex: 1; }
+    .task-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: #0b74de; }
+    .task-info { flex: 1; }
+    .task-title { font-weight: 600; font-size: 1rem; color: #1a1a1a; margin-bottom: 4px; }
+    .task-desc { font-size: 0.9rem; color: #666; }
+    .task-right { display: flex; align-items: center; gap: 12px; }
+    .task-badge {
+      padding: 4px 10px;
       border-radius: 8px;
-      border: 1px solid #ddd;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-ok { background: #e8f5e9; color: #2e7d32; }
+    .badge-pending { background: #fff3e0; color: #f57c00; }
+    .badge-offline { background: #f3e5f5; color: #7b1fa2; }
+    .task-photo { max-width: 60px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .btn-delete { padding: 8px 14px; font-size: 0.85rem; background: #ef5350; }
+    .btn-delete:hover { background: #d32f2f; }
+    .input, textarea {
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
       width: 100%;
-      box-sizing: border-box;
-      margin-bottom: 8px;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      font-family: inherit;
+      transition: border 0.2s;
     }
-    #cameraPreview {
-      max-width: 100%;
-      border-radius: 8px;
-    }
-    .muted {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    .feedback {
-      font-size: 0.9rem;
-      color: #0b74de;
-      margin-top: 4px;
-    }
+    .input:focus, textarea:focus { outline: none; border-color: #0b74de; }
+    textarea { resize: vertical; min-height: 80px; }
+    #cameraPreview { max-width: 100%; border-radius: 12px; }
+    .muted { color: #666; font-size: 0.9rem; }
+    .feedback { font-size: 0.9rem; color: #0b74de; margin-top: 8px; font-weight: 500; }
+    #tasksList:empty::after { content: '✨ No hay tareas. ¡Crea una nueva!'; display: block; text-align: center; color: #999; padding: 40px 20px; font-size: 1.1rem; }
     @media(max-width:600px){
-      header {flex-direction: column; align-items: flex-start;}
-      .controls {flex-direction: column; align-items: flex-start;}
+      .controls { flex-direction: column; width: 100%; }
+      .btn { width: 100%; }
+      .task { flex-direction: column; align-items: flex-start; }
+      .task-right { width: 100%; justify-content: space-between; margin-top: 12px; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Task Manager — App (CSR)</h1>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn" id="installBtn" aria-label="Instalar PWA">Instalar</button>
-      <a href="/" class="btn" style="background:#0b74de;text-decoration:none;">Volver (SSR)</a>
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <h1>📝 Task Manager</h1>
+        <button class="btn btn-secondary" id="installBtn" style="display:none" aria-label="Instalar PWA">📲 Instalar App</button>
+      </div>
+      <div id="status" class="muted" style="color:rgba(255,255,255,0.9);margin-top:8px"></div>
     </div>
   </header>
 
-  <section class="card">
-    <h2>Crear tarea</h2>
-    <input id="titleInput" class="input" placeholder="Título de la tarea" aria-label="Título de la tarea">
-    <textarea id="descInput" class="input" placeholder="Descripción (opcional)" aria-label="Descripción de la tarea"></textarea>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button id="getLocation" class="btn">Agregar ubicación</button>
-      <button id="openCamera" class="btn">Tomar foto</button>
-      <button id="createTask" class="btn">Crear tarea</button>
-    </div>
-    <div id="cameraArea" style="margin-top:8px">
-      <video id="cameraPreview" autoplay playsinline style="display:none"></video>
-      <canvas id="photoCanvas" style="display:none"></canvas>
-    </div>
-    <div id="createResult" class="muted feedback"></div>
-  </section>
+  <div class="container">
+    <section class="card">
+      <h2>➕ Nueva Tarea</h2>
+      <input id="titleInput" class="input" placeholder="¿Qué necesitas hacer?" aria-label="Título de la tarea">
+      <textarea id="descInput" class="input" placeholder="Descripción (opcional)" aria-label="Descripción de la tarea"></textarea>
+      <div class="controls">
+        <button id="createTask" class="btn">✅ Crear tarea</button>
+        <button id="getLocation" class="btn btn-secondary">📍 Ubicación</button>
+        <button id="openCamera" class="btn btn-secondary">📷 Foto</button>
+        <button id="syncBtn" class="btn btn-secondary">🔄 Sincronizar</button>
+      </div>
+      <div id="cameraArea" style="margin-top:12px">
+        <video id="cameraPreview" autoplay playsinline style="display:none"></video>
+        <canvas id="photoCanvas" style="display:none"></canvas>
+      </div>
+      <div id="createResult" class="feedback"></div>
+    </section>
 
-  <section class="card">
-    <h2>Lista de tareas</h2>
-    <div class="controls">
-      <button id="syncBtn" class="btn">Forzar sincronización</button>
-      <div id="status" class="muted feedback"></div>
-    </div>
-    <div id="tasksList"></div>
-  </section>
+    <section class="card">
+      <h2>📋 Mis Tareas</h2>
+      <div id="tasksList"></div>
+    </section>
+  </div>
 
-  <section class="card">
-    <h2>Notificaciones & Push</h2>
-    <div class="controls">
-      <button id="notifBtn" class="btn">Pedir permiso y mostrar notificación</button>
-      <div id="notifFeedback" class="feedback"></div>
-      <button id="subscribePush" class="btn">Suscribirse a Push (guardar en server)</button>
-      <div id="pushFeedback" class="feedback"></div>
-      <button id="triggerServerPush" class="btn">Pedir al server que envíe push (demo)</button>
-      <div id="pushResult" class="feedback"></div>
-    </div>
-  </section>
+  <div class="container">
+    <section class="card">
+      <h2>🔔 Notificaciones Push</h2>
+      <p class="muted">Las notificaciones se configuran automáticamente. Acepta los permisos cuando te los solicite el navegador.</p>
+
+      <!-- Botones opcionales para testing/demo -->
+      <details style="margin-top:12px">
+        <summary style="cursor:pointer;color:#0b74de;font-weight:500">🔧 Opciones de desarrollo</summary>
+        <div class="controls" style="margin-top:12px">
+          <button id="notifBtn" class="btn btn-secondary">Notificación local</button>
+          <button id="subscribePush" class="btn btn-secondary">Re-suscribirse</button>
+          <button id="triggerServerPush" class="btn btn-secondary">Test Push servidor</button>
+        </div>
+        <pre id="pushResult" class="feedback" style="white-space:pre-wrap"></pre>
+      </details>
+    </section>
+  </div>
 
   <script src="/public/app.js"></script>
 </body>

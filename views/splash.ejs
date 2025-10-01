@@ -15,13 +15,14 @@
 </head>
 <body>
   <div class="splash">
-    <div class="logo">PWA</div>
-    <h1>Bienvenido</h1>
-    <p>Plantilla PWA — toque "Entrar" para continuar</p>
-    <div>
-      <a href="/" class="btn">Entrar (SSR)</a>
-      <a href="/app" class="btn">Entrar (CSR)</a>
-    </div>
+    <div class="logo">📝</div>
+    <h1>Task Manager</h1>
+    <p>Gestiona tus tareas de forma offline y online</p>
+    <a href="/app" class="btn">Entrar a la App</a>
   </div>
+  <script>
+    // Auto-redirigir a /app después de 2 segundos
+    setTimeout(() => window.location.href = '/app', 2000);
+  </script>
 </body>
 </html>
