@@ -3,49 +3,279 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Task Manager — Home (SSR)</title>
-  <link rel="manifest" href="/manifest.json">
+  <title>Task Manager — SSR</title>
+  <link rel="manifest" href="/public/manifest.json">
   <meta name="theme-color" content="#0b74de">
   <style>
-    body{font-family:system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;padding:16px;background:#f6fbff}
-    header{display:flex;align-items:center;gap:12px;justify-content:space-between}
-    .card{background:white;padding:12px;border-radius:10px;box-shadow:0 4px 14px rgba(12,23,56,0.06);margin:12px 0}
-    nav a{margin-right:12px;text-decoration:none;color:#0b74de;font-weight:500}
-    .task{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px;border-bottom:1px solid #eee}
-    .task .left{display:flex;align-items:center;gap:12px}
-    .small{font-size:0.9rem;color:#666}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(180deg, #f0f4f8 0%, #e5eef5 100%);
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #0b74de 0%, #1e88e5 100%);
+      color: white;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(11, 116, 222, 0.2);
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .header-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    nav {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    nav a {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    nav a:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-1px);
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      margin: 16px 0;
+    }
+    .card h2 {
+      margin: 0 0 16px 0;
+      font-size: 1.25rem;
+      color: #1a1a1a;
+    }
+    .task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: #fafbfc;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border: 1px solid #e8ecef;
+    }
+    .task:last-child {
+      margin-bottom: 0;
+    }
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+    }
+    .task-checkbox {
+      width: 22px;
+      height: 22px;
+      cursor: not-allowed;
+      accent-color: #0b74de;
+    }
+    .task-info {
+      flex: 1;
+    }
+    .task-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    .task-desc {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .task-meta {
+      font-size: 0.85rem;
+      color: #999;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .empty-state {
+      text-align: center;
+      color: #999;
+      padding: 60px 20px;
+    }
+    .empty-state p {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
+    .info-box {
+      background: #fff3e0;
+      border-left: 4px solid #f57c00;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .info-box strong {
+      color: #f57c00;
+    }
   </style>
 </head>
 <body>
   <header>
-    <div>
-      <h1>Task Manager — Home (SSR)</h1>
+    <div class="header-content">
+      <h1>Task Manager (SSR)</h1>
       <nav>
-        <a href="/splash">Splash</a>
-        <a href="/app">App (CSR)</a>
+        <a href="/app">Ir a App (CSR)</a>
+        <a href="/splash">Ver Splash</a>
       </nav>
     </div>
-    <div class="small">Tareas en servidor: <strong><%= tasks.length %></strong></div>
   </header>
 
-  <section class="card">
-    <h2>Tareas servidas por el servidor</h2>
-    <% if (tasks && tasks.length) { %>
-      <% tasks.forEach(function(task){ %>
-        <article class="task">
-          <div class="left">
-            <input type="checkbox" <%= task.completed ? 'checked' : '' %> disabled>
-            <div>
-              <div><strong><%= task.title %></strong></div>
-              <div class="small"><%= task.description %></div>
-            </div>
-          </div>
-          <div class="small"><%= new Date(task.createdAt).toLocaleString('es-ES') %></div>
-        </article>
-      <% }) %>
-    <% } else { %>
-      <p>No hay tareas en el servidor.</p>
-    <% } %>
-  </section>
+  <div class="container">
+    <div class="info-box">
+      <strong>Vista SSR:</strong> Esta página es renderizada en el servidor.
+      Las tareas se cargan directamente desde el servidor al generar el HTML.
+      Para funcionalidad offline completa, usa la <a href="/app" style="color:#f57c00;font-weight:600">App CSR</a>.
+    </div>
+
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+        <h2>Todas las Tareas</h2>
+        <span class="badge" id="taskBadge">Cargando...</span>
+      </div>
+
+      <div id="allTasks">
+        <p style="color:#999;text-align:center;padding:20px">Cargando tareas...</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // IndexedDB helper functions
+    var DB_NAME = 'pwa-task-db';
+    var DB_STORE = 'tasks';
+
+    function openDB() {
+      return new Promise(function(resolve, reject) {
+        var req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = function() {
+          var db = req.result;
+          if (!db.objectStoreNames.contains(DB_STORE)) {
+            var store = db.createObjectStore(DB_STORE, { keyPath: 'clientId' });
+            store.createIndex('by_createdAt', 'createdAt');
+          }
+        };
+        req.onsuccess = function() { resolve(req.result); };
+        req.onerror = function(e) { reject(e); };
+      });
+    }
+
+    function getAllTasksLocal() {
+      return openDB().then(function(db) {
+        return new Promise(function(resolve, reject) {
+          var tx = db.transaction(DB_STORE, 'readonly');
+          var store = tx.objectStore(DB_STORE);
+          var req = store.getAll();
+          req.onsuccess = function() {
+            var results = req.result.sort(function(a, b) {
+              return b.createdAt - a.createdAt;
+            });
+            resolve(results);
+          };
+          req.onerror = function(e) { reject(e); };
+        });
+      }).catch(function(e) {
+        console.error('Error loading IndexedDB:', e);
+        return [];
+      });
+    }
+
+    // Load and render all tasks
+    function loadAllTasks() {
+      var container = document.getElementById('allTasks');
+      var badge = document.getElementById('taskBadge');
+
+      getAllTasksLocal().then(function(tasks) {
+        if (tasks.length === 0) {
+          container.innerHTML = '<p style="color:#999;text-align:center;padding:20px">No hay tareas</p>';
+          badge.textContent = '0 tareas';
+          return;
+        }
+
+        container.innerHTML = '';
+
+        tasks.forEach(function(task) {
+          var article = document.createElement('article');
+          article.className = 'task';
+
+          var taskLeft = document.createElement('div');
+          taskLeft.className = 'task-left';
+
+          var checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'task-checkbox';
+          checkbox.checked = task.completed || false;
+          checkbox.disabled = true;
+
+          var taskInfo = document.createElement('div');
+          taskInfo.className = 'task-info';
+
+          var title = document.createElement('div');
+          title.className = 'task-title';
+          title.textContent = task.title || 'Sin título';
+          if (task.completed) title.style.textDecoration = 'line-through';
+
+          taskInfo.appendChild(title);
+
+          if (task.description) {
+            var desc = document.createElement('div');
+            desc.className = 'task-desc';
+            desc.textContent = task.description;
+            taskInfo.appendChild(desc);
+          }
+
+          taskLeft.appendChild(checkbox);
+          taskLeft.appendChild(taskInfo);
+
+          var meta = document.createElement('div');
+          meta.className = 'task-meta';
+          var source = (task.clientId && task.clientId.indexOf('l:') === 0) ? 'Local' : 'Sincronizada';
+          var date = new Date(task.createdAt || Date.now()).toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          meta.textContent = source + ' - ' + date;
+
+          article.appendChild(taskLeft);
+          article.appendChild(meta);
+          container.appendChild(article);
+        });
+
+        badge.textContent = tasks.length + ' tarea' + (tasks.length !== 1 ? 's' : '');
+      });
+    }
+
+    // Load all tasks when page loads
+    window.addEventListener('load', loadAllTasks);
+  </script>
 </body>
 </html>

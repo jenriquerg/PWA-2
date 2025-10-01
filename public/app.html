@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Task Manager — App (CSR)</title>
-  <link rel="manifest" href="/manifest.json">
+  <title>Task Manager — App</title>
+  <link rel="manifest" href="/public/manifest.json">
   <meta name="theme-color" content="#0b74de">
   <style>
     * { box-sizing: border-box; }
@@ -98,7 +98,7 @@
     #cameraPreview { max-width: 100%; border-radius: 12px; }
     .muted { color: #666; font-size: 0.9rem; }
     .feedback { font-size: 0.9rem; color: #0b74de; margin-top: 8px; font-weight: 500; }
-    #tasksList:empty::after { content: '✨ No hay tareas. ¡Crea una nueva!'; display: block; text-align: center; color: #999; padding: 40px 20px; font-size: 1.1rem; }
+    #tasksList:empty::after { content: 'No hay tareas. ¡Crea una nueva!'; display: block; text-align: center; color: #999; padding: 40px 20px; font-size: 1.1rem; }
     @media(max-width:600px){
       .controls { flex-direction: column; width: 100%; }
       .btn { width: 100%; }
@@ -111,8 +111,11 @@
   <header>
     <div class="container">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
-        <h1>📝 Task Manager</h1>
-        <button class="btn btn-secondary" id="installBtn" style="display:none" aria-label="Instalar PWA">📲 Instalar App</button>
+        <h1>Task Manager (CSR)</h1>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="/home" class="btn btn-secondary" style="text-decoration:none">Ver SSR</a>
+          <button class="btn btn-secondary" id="installBtn" style="display:none" aria-label="Instalar PWA">Instalar App</button>
+        </div>
       </div>
       <div id="status" class="muted" style="color:rgba(255,255,255,0.9);margin-top:8px"></div>
     </div>
@@ -120,14 +123,14 @@
 
   <div class="container">
     <section class="card">
-      <h2>➕ Nueva Tarea</h2>
+      <h2>Nueva Tarea</h2>
       <input id="titleInput" class="input" placeholder="¿Qué necesitas hacer?" aria-label="Título de la tarea">
       <textarea id="descInput" class="input" placeholder="Descripción (opcional)" aria-label="Descripción de la tarea"></textarea>
       <div class="controls">
-        <button id="createTask" class="btn">✅ Crear tarea</button>
-        <button id="getLocation" class="btn btn-secondary">📍 Ubicación</button>
-        <button id="openCamera" class="btn btn-secondary">📷 Foto</button>
-        <button id="syncBtn" class="btn btn-secondary">🔄 Sincronizar</button>
+        <button id="createTask" class="btn">Crear tarea</button>
+        <button id="getLocation" class="btn btn-secondary">Agregar ubicación</button>
+        <button id="openCamera" class="btn btn-secondary">Tomar foto</button>
+        <button id="syncBtn" class="btn btn-secondary">Sincronizar</button>
       </div>
       <div id="cameraArea" style="margin-top:12px">
         <video id="cameraPreview" autoplay playsinline style="display:none"></video>
@@ -137,19 +140,19 @@
     </section>
 
     <section class="card">
-      <h2>📋 Mis Tareas</h2>
+      <h2>Mis Tareas</h2>
       <div id="tasksList"></div>
     </section>
   </div>
 
   <div class="container">
     <section class="card">
-      <h2>🔔 Notificaciones Push</h2>
+      <h2>Notificaciones Push</h2>
       <p class="muted">Las notificaciones se configuran automáticamente. Acepta los permisos cuando te los solicite el navegador.</p>
 
       <!-- Botones opcionales para testing/demo -->
       <details style="margin-top:12px">
-        <summary style="cursor:pointer;color:#0b74de;font-weight:500">🔧 Opciones de desarrollo</summary>
+        <summary style="cursor:pointer;color:#0b74de;font-weight:500">Opciones de desarrollo</summary>
         <div class="controls" style="margin-top:12px">
           <button id="notifBtn" class="btn btn-secondary">Notificación local</button>
           <button id="subscribePush" class="btn btn-secondary">Re-suscribirse</button>

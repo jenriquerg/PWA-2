@@ -1,24 +1,36 @@
 {
-  "name": "PWA Case Study",
-  "short_name": "PWA-CS",
-  "description": "App de ejemplo PWA para gestión de tareas offline-first con notificaciones y push.",
+  "name": "Task Manager PWA",
+  "short_name": "Tasks",
+  "description": "Gestiona tus tareas offline y online con sincronización automática.",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "background_color": "#0b74de",
   "theme_color": "#0b74de",
   "lang": "es",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/public/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/public/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Nueva Tarea",
+      "short_name": "Nueva",
+      "description": "Crear una nueva tarea",
+      "url": "/app",
+      "icons": [{ "src": "/public/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

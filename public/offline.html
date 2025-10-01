@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sin conexión — Task Manager</title>
+  <meta name="theme-color" content="#0b74de">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .offline-container {
+      max-width: 500px;
+      animation: fadeIn 0.5s ease-in;
+    }
+    .offline-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      opacity: 0.9;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 28px;
+      background: white;
+      color: #667eea;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .info {
+      margin-top: 32px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <div class="offline-icon" style="font-size:60px;font-weight:bold">X</div>
+    <h1>Sin conexión a Internet</h1>
+    <p>
+      No te preocupes, tus tareas están guardadas localmente.
+      Puedes seguir trabajando en modo offline y todo se sincronizará automáticamente cuando recuperes la conexión.
+    </p>
+    <a href="/app" class="btn">Intentar de nuevo</a>
+    <div class="info">
+      <p><strong>Tip:</strong> La app funciona completamente offline. Todas tus tareas están guardadas en tu dispositivo.</p>
+    </div>
+  </div>
+
+  <script>
+    // Verificar conexión cada 5 segundos y redirigir automáticamente si se recupera
+    setInterval(() => {
+      if (navigator.onLine) {
+        window.location.href = '/app';
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

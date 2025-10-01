@@ -142,8 +142,8 @@ async function renderTasks() {
       const db = await openDB();
       const tx = db.transaction(DB_STORE, 'readwrite');
       tx.objectStore(DB_STORE).put(t);
-      status('✓ Tarea actualizada');
-      try { await syncPendingTasks(); status('✓ Sincronizado'); } catch(e){ status('⏳ Pendiente sincronización'); }
+      status('Tarea actualizada');
+      try { await syncPendingTasks(); status('Sincronizado'); } catch(e){ status('Pendiente sincronización'); }
       renderTasks();
       if (navigator.vibrate) navigator.vibrate(50);
     });
@@ -190,13 +190,13 @@ async function renderTasks() {
 
     const delBtn = document.createElement('button');
     delBtn.className = 'btn btn-delete';
-    delBtn.textContent = '🗑️';
+    delBtn.textContent = 'Borrar';
     delBtn.title = 'Borrar tarea';
     delBtn.addEventListener('click', async () => {
       if (!confirm('¿Borrar esta tarea?')) return;
       await deleteTaskLocal(t.clientId);
-      status('🗑️ Tarea eliminada');
-      try { await syncPendingTasks(); status('✓ Sincronizado'); } catch(e){ status('⏳ Pendiente sincronización'); }
+      status('Tarea eliminada');
+      try { await syncPendingTasks(); status('Sincronizado'); } catch(e){ status('Pendiente sincronización'); }
       renderTasks();
     });
 
