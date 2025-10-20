@@ -1,4 +1,5 @@
-/* sw.js — Service Worker completo PWA Task Manager */
+// Service Worker para Task Manager PWA
+// Maneja el caché y el funcionamiento offline
 
 const CACHE_NAME = 'pwa-task-manager-v2';
 const CORE_ASSETS = [
@@ -11,7 +12,7 @@ const CORE_ASSETS = [
   '/public/offline.html'
 ];
 
-// --- Install: cache core assets ---
+// Cuando se instala el SW, guardamos todos los archivos esenciales
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -20,7 +21,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// --- Activate: limpiar caches viejos ---
+// Cuando se activa, limpiamos versiones viejas del caché
 self.addEventListener('activate', event => {
   const currentCaches = [CACHE_NAME];
   event.waitUntil(
@@ -32,19 +33,19 @@ self.addEventListener('activate', event => {
   );
 });
 
-// --- Fetch: estrategia híbrida para mejor offline ---
+// Interceptamos las peticiones y las respondemos desde caché o red
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Solo interceptar peticiones al mismo origen
+  // Solo manejamos peticiones a nuestro propio servidor
   if (url.origin !== location.origin) return;
 
-  // Network-first para APIs (con fallback a cache)
+  // Para las APIs: intenta internet primero, si falla usa caché
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request)
         .then(res => {
-          // Cachear solo respuestas exitosas
+          // Si la respuesta es buena, guárdala en caché
           if (res.ok) {
             const clone = res.clone();
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
@@ -52,7 +53,7 @@ self.addEventListener('fetch', event => {
           return res;
         })
         .catch(() => caches.match(event.request).then(cached => {
-          // Si no hay cache, devolver respuesta offline
+          // Si no hay internet ni caché, devuelve una respuesta vacía
           if (!cached) {
             return new Response(JSON.stringify({ ok: false, offline: true, tasks: [] }), {
               headers: { 'Content-Type': 'application/json' }
@@ -64,7 +65,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache-first para assets estáticos (HTML, CSS, JS, imágenes)
+  // Para archivos (HTML, JS, CSS, imágenes): usa caché primero
   event.respondWith(
     caches.match(event.request)
       .then(cached => {
@@ -72,7 +73,7 @@ self.addEventListener('fetch', event => {
 
         return fetch(event.request)
           .then(networkRes => {
-            // Cachear la respuesta para futuras peticiones
+            // Guarda la respuesta nueva en caché
             if (networkRes.ok) {
               const clone = networkRes.clone();
               caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
@@ -80,7 +81,7 @@ self.addEventListener('fetch', event => {
             return networkRes;
           })
           .catch(() => {
-            // Fallback a offline.html solo para navegación HTML
+            // Si es una página HTML y no hay conexión, muestra offline.html
             if (event.request.mode === 'navigate') {
               return caches.match('/public/offline.html');
             }
@@ -89,7 +90,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// --- Push notifications ---
+// Cuando llega una notificación push del servidor
 self.addEventListener('push', event => {
   let data = { title: 'Notificación', body: 'Tienes una notificación.', url: '/app' };
   try { data = event.data.json(); } catch(e) {}
@@ -105,19 +106,19 @@ self.addEventListener('push', event => {
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-// --- Click en notificación ---
+// Cuando el usuario hace clic en una notificación
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   const url = event.notification.data?.url || '/app';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // Si ya hay una ventana abierta, enfocarla
+      // Si ya hay una pestaña abierta con la app, la enfocamos
       for (const client of windowClients) {
         if (client.url.includes('/app') && 'focus' in client) {
           return client.focus();
         }
       }
-      // Si no, abrir nueva ventana
+      // Si no hay ninguna abierta, abrimos una nueva
       if (clients.openWindow) return clients.openWindow(url);
     })
   );

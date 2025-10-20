@@ -1,8 +1,8 @@
-// spp.js — Task Manager CSR (cliente)
+// Task Manager - Lógica del cliente
 const DB_NAME = 'pwa-task-db';
 const DB_STORE = 'tasks';
 
-// --- IndexedDB ---
+// Función para abrir la base de datos local (IndexedDB)
 function openDB() {
   return new Promise((res, rej) => {
     const req = indexedDB.open(DB_NAME, 1);
@@ -18,6 +18,7 @@ function openDB() {
   });
 }
 
+// Guarda una tarea nueva en IndexedDB (offline)
 async function saveTaskLocal(task) {
   const db = await openDB();
   const tx = db.transaction(DB_STORE, 'readwrite');
@@ -32,6 +33,7 @@ async function saveTaskLocal(task) {
   return tx.complete;
 }
 
+// Guarda una tarea sin marcarla como "pendiente de sincronizar"
 async function putTaskLocalNoDirty(task) {
   const db = await openDB();
   const tx = db.transaction(DB_STORE, 'readwrite');
@@ -41,6 +43,7 @@ async function putTaskLocalNoDirty(task) {
   return tx.complete;
 }
 
+// Obtiene todas las tareas guardadas localmente
 async function getAllTasksLocal() {
   const db = await openDB();
   return new Promise((res, rej) => {
@@ -52,6 +55,7 @@ async function getAllTasksLocal() {
   });
 }
 
+// Borra una tarea de IndexedDB (marca como borrada si viene del servidor)
 async function deleteTaskLocal(clientId) {
   const db = await openDB();
   const tx = db.transaction(DB_STORE, 'readwrite');
@@ -71,6 +75,7 @@ async function deleteTaskLocal(clientId) {
   return tx.complete;
 }
 
+// Reemplaza una tarea local con la que viene del servidor después de sincronizar
 async function replaceLocalWithServer(localClientId, serverTask) {
   const db = await openDB();
   const tx = db.transaction(DB_STORE, 'readwrite');
@@ -82,7 +87,7 @@ async function replaceLocalWithServer(localClientId, serverTask) {
   return tx.complete;
 }
 
-// --- UI refs ---
+// Referencias a elementos HTML
 const titleInput = document.getElementById('titleInput');
 const descInput = document.getElementById('descInput');
 const createTaskBtn = document.getElementById('createTask');
@@ -99,12 +104,13 @@ let currentLocation = null;
 let mediaStream = null;
 let latestPhotoDataUrl = null;
 
-// --- Service Worker ---
+// Registra el Service Worker para funcionar offline
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/public/sw.js').then(reg => {
-    console.log('SW registrado', reg);
-  }).catch(err => console.error('SW fallo', err));
+    console.log('Service Worker registrado correctamente');
+  }).catch(err => console.error('Error al registrar SW:', err));
 
+  // Muestra el botón de "Instalar App" cuando sea posible
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     const installBtn = document.getElementById('installBtn');
@@ -119,7 +125,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// --- Render tasks ---
+// Renderiza todas las tareas en la pantalla
 async function renderTasks() {
   const tasks = await getAllTasksLocal();
   tasksList.innerHTML = '';
@@ -207,11 +213,11 @@ async function renderTasks() {
   });
 }
 
-// --- Helpers ---
+// Funciones auxiliares
 function status(txt){ statusEl.textContent = txt; }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]); }
 
-// --- Create task ---
+// Botón para crear una nueva tarea
 createTaskBtn.addEventListener('click', async () => {
   const title = titleInput.value && titleInput.value.trim();
   const desc = descInput.value && descInput.value.trim();
@@ -231,7 +237,7 @@ createTaskBtn.addEventListener('click', async () => {
   } else status('Offline: tarea pendiente de sincronización.');
 });
 
-// --- Location ---
+// Botón para agregar ubicación GPS a la tarea
 getLocationBtn.addEventListener('click', () => {
   if (!navigator.geolocation) return alert('Geolocation no soportada.');
   navigator.geolocation.getCurrentPosition(pos => {
@@ -240,7 +246,7 @@ getLocationBtn.addEventListener('click', () => {
   }, err => { createResult.textContent = 'Error geolocalización: ' + err.message; }, { timeout:10000 });
 });
 
-// --- Camera ---
+// Botón para abrir la cámara y capturar foto
 openCameraBtn.addEventListener('click', async () => {
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' } });
@@ -264,12 +270,12 @@ openCameraBtn.addEventListener('click', async () => {
   } catch(err){ alert('No se pudo abrir la cámara: ' + err.message); }
 });
 
-// --- Sync ---
+// Sincroniza las tareas locales con el servidor
 async function syncPendingTasks() {
   if (!navigator.onLine) throw new Error('offline');
   const all = await getAllTasksLocal();
 
-  // Crear tareas locales
+  // Primero: envía al servidor las tareas creadas offline
   for (const t of all) {
     if (t.deleted) continue;
     if (t.clientId.startsWith('l:')) {
@@ -283,7 +289,7 @@ async function syncPendingTasks() {
 
   const afterCreate = await getAllTasksLocal();
 
-  // Actualizar o borrar server-backed
+  // Segundo: sincroniza cambios y borrados de tareas que ya están en el servidor
   for (const t of afterCreate) {
     if (t.clientId.startsWith('s:')) {
       const serverId = Number(t.clientId.split(':')[1]);
@@ -299,7 +305,7 @@ async function syncPendingTasks() {
     }
   }
 
-  // Pull server tasks
+  // Tercero: descarga todas las tareas del servidor para tenerlas sincronizadas
   try {
     const res = await fetch('/api/tasks');
     const json = await res.json();
@@ -314,26 +320,22 @@ async function syncPendingTasks() {
   renderTasks();
 }
 
-// --- Auto-setup de Push Notifications ---
+// Configura las notificaciones push automáticamente al cargar la app
 async function setupPushNotifications() {
   try {
-    // Verificar soporte
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.log('Push notifications no soportadas en este navegador');
       return;
     }
 
-    // Esperar a que el SW esté listo
     const reg = await navigator.serviceWorker.ready;
 
-    // Verificar si ya está suscrito
     let subscription = await reg.pushManager.getSubscription();
     if (subscription) {
       console.log('Ya estás suscrito a push notifications');
       return;
     }
 
-    // Pedir permiso si no lo tenemos
     if (Notification.permission === 'default') {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
@@ -342,36 +344,32 @@ async function setupPushNotifications() {
       }
     }
 
-    // Si el permiso fue denegado previamente, no hacer nada
     if (Notification.permission !== 'granted') {
       console.log('Notificaciones no permitidas');
       return;
     }
 
-    // Obtener la clave pública VAPID
     const res = await fetch('/api/vapid-public');
     const { publicKey } = await res.json();
 
-    // Suscribirse a push
     subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(publicKey)
     });
 
-    // Guardar suscripción en el servidor
     await fetch('/api/save-subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(subscription)
     });
 
-    console.log('Push notifications configuradas automáticamente ✓');
+    console.log('Push notifications configuradas correctamente');
   } catch (err) {
     console.warn('Error al configurar push notifications:', err.message);
   }
 }
 
-// --- Load / online/offline ---
+// Cuando carga la página y cuando cambia el estado online/offline
 window.addEventListener('load', async () => {
   renderTasks();
   if(navigator.onLine){
@@ -385,14 +383,28 @@ window.addEventListener('load', async () => {
     renderTasks();
   }else status('Offline: trabajando local.');
 
-  // Configurar push automáticamente
   await setupPushNotifications();
 });
-window.addEventListener('online', async()=>{status('Online: sincronizando...');try{await syncPendingTasks();status('Sincronizado.');}catch(e){status('Sync incompleta.');} renderTasks();});
-window.addEventListener('offline',()=>{status('Offline: cambios guardados localmente.');});
-syncBtn.addEventListener('click',async()=>{if(!navigator.onLine)return alert('Offline.');status('Sincronizando manualmente...');try{await syncPendingTasks();status('Sincronizado.');}catch(e){status('Sync falló.');}});
 
-// --- Notifications locales ---
+window.addEventListener('online', async()=>{
+  status('Online: sincronizando...');
+  try{await syncPendingTasks();status('Sincronizado.');}
+  catch(e){status('Sync incompleta.');}
+  renderTasks();
+});
+
+window.addEventListener('offline',()=>{
+  status('Offline: cambios guardados localmente.');
+});
+
+syncBtn.addEventListener('click',async()=>{
+  if(!navigator.onLine)return alert('Offline.');
+  status('Sincronizando manualmente...');
+  try{await syncPendingTasks();status('Sincronizado.');}
+  catch(e){status('Sync falló.');}
+});
+
+// Botones de prueba para notificaciones
 document.getElementById('notifBtn').addEventListener('click',async()=>{
   if(!('Notification'in window)) return alert('Notifications API no soportada.');
   if(Notification.permission==='default') await Notification.requestPermission();
@@ -402,7 +414,7 @@ document.getElementById('notifBtn').addEventListener('click',async()=>{
   } else alert('Permiso denegado para notificaciones.');
 });
 
-// --- Push automático ---
+// Botón para re-suscribirse a push (solo para pruebas)
 const subscribePushBtn = document.getElementById('subscribePush');
 subscribePushBtn.addEventListener('click',async()=>{
   if(!('serviceWorker'in navigator)) return alert('Service worker requerido para Push.');
@@ -423,7 +435,7 @@ subscribePushBtn.addEventListener('click',async()=>{
   }catch(err){ alert('No se pudo suscribir: '+err.message); }
 });
 
-// --- Trigger server push demo ---
+// Botón para enviar notificación de prueba desde el servidor
 document.getElementById('triggerServerPush').addEventListener('click',async()=>{
   const title=prompt('Título','Recordatorio');
   const body=prompt('Cuerpo','Tienes tareas pendientes.');
@@ -432,7 +444,7 @@ document.getElementById('triggerServerPush').addEventListener('click',async()=>{
   document.getElementById('pushResult').textContent=JSON.stringify(json,null,2);
 });
 
-// --- Helper base64 -> Uint8Array ---
+// Convierte la clave VAPID de base64 a Uint8Array
 function urlBase64ToUint8Array(base64String){
   if(!base64String) return undefined;
   const padding='='.repeat((4-base64String.length%4)%4);
